@@ -17,13 +17,15 @@ export default function Home() {
   // Firebase 데이터 저장 함수
   const saveToFirebase = async (completed: Set<string>, sectionsData: ChecklistSectionType[]) => {
     try {
+      console.log("💾 Firebase에 저장 중...", Array.from(completed));
       await setDoc(doc(db, "wedding", "checklist"), {
         completedItems: Array.from(completed),
         sections: sectionsData,
         updatedAt: new Date().toISOString(),
       });
+      console.log("✅ Firebase 저장 완료!");
     } catch (error) {
-      console.error("Firebase 저장 실패:", error);
+      console.error("❌ Firebase 저장 실패:", error);
       // Firebase 실패시 localStorage에 백업
       localStorage.setItem("wedding-checklist-completed", JSON.stringify(Array.from(completed)));
       localStorage.setItem("wedding-checklist-sections", JSON.stringify(sectionsData));
@@ -37,11 +39,14 @@ export default function Home() {
     const unsubscribe = onSnapshot(
       doc(db, "wedding", "checklist"),
       (docSnapshot) => {
+        console.log("🔥 Firebase 실시간 업데이트 받음!", new Date().toLocaleTimeString());
         if (docSnapshot.exists()) {
           const data = docSnapshot.data();
+          console.log("✅ 완료된 항목:", data.completedItems);
           setCompletedItems(new Set(data.completedItems || []));
           setSections(data.sections || checklistData);
         } else {
+          console.log("📝 문서가 없어서 초기 데이터 생성");
           // 문서가 없으면 초기 데이터로 생성
           saveToFirebase(new Set(), checklistData);
         }
