@@ -4,6 +4,8 @@ export interface ChecklistItem {
   person: string;
   memo: string;
   note: string;
+  userMemo?: string; // 사용자가 추가하는 메모
+  isCustom?: boolean; // 사용자가 추가한 커스텀 항목인지
 }
 
 export interface ChecklistSection {

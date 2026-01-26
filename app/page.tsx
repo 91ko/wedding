@@ -1,31 +1,45 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { checklistData } from "@/data/checklist";
+import { checklistData, ChecklistSection as ChecklistSectionType } from "@/data/checklist";
 import ChecklistSection from "@/components/ChecklistSection";
 import ProgressBar from "@/components/ProgressBar";
 import Header from "@/components/Header";
 
 export default function Home() {
   const [completedItems, setCompletedItems] = useState<Set<string>>(new Set());
+  const [sections, setSections] = useState<ChecklistSectionType[]>(checklistData);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("wedding-checklist");
-    if (saved) {
-      setCompletedItems(new Set(JSON.parse(saved)));
+    // 체크 상태 불러오기
+    const savedCompleted = localStorage.getItem("wedding-checklist-completed");
+    if (savedCompleted) {
+      setCompletedItems(new Set(JSON.parse(savedCompleted)));
+    }
+
+    // 섹션 데이터 불러오기 (메모, 커스텀 항목 등)
+    const savedSections = localStorage.getItem("wedding-checklist-sections");
+    if (savedSections) {
+      setSections(JSON.parse(savedSections));
     }
   }, []);
 
   useEffect(() => {
     if (mounted) {
+      // 체크 상태 저장
       localStorage.setItem(
-        "wedding-checklist",
+        "wedding-checklist-completed",
         JSON.stringify(Array.from(completedItems))
       );
+      // 섹션 데이터 저장
+      localStorage.setItem(
+        "wedding-checklist-sections",
+        JSON.stringify(sections)
+      );
     }
-  }, [completedItems, mounted]);
+  }, [completedItems, sections, mounted]);
 
   const toggleItem = (id: string) => {
     setCompletedItems((prev) => {
@@ -39,7 +53,84 @@ export default function Home() {
     });
   };
 
-  const totalItems = checklistData.reduce(
+  const updateMemo = (sectionId: string, itemId: string, memo: string) => {
+    setSections((prevSections) =>
+      prevSections.map((section) => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            items: section.items.map((item) =>
+              item.id === itemId ? { ...item, userMemo: memo } : item
+            ),
+          };
+        }
+        return section;
+      })
+    );
+  };
+
+  const deleteItem = (sectionId: string, itemId: string) => {
+    setSections((prevSections) =>
+      prevSections.map((section) => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            items: section.items.filter((item) => item.id !== itemId),
+          };
+        }
+        return section;
+      })
+    );
+    // 완료 항목에서도 제거
+    setCompletedItems((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(itemId);
+      return newSet;
+    });
+  };
+
+  const updateTask = (sectionId: string, itemId: string, task: string) => {
+    setSections((prevSections) =>
+      prevSections.map((section) => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            items: section.items.map((item) =>
+              item.id === itemId ? { ...item, task } : item
+            ),
+          };
+        }
+        return section;
+      })
+    );
+  };
+
+  const addItem = (sectionId: string, task: string) => {
+    const newItemId = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setSections((prevSections) =>
+      prevSections.map((section) => {
+        if (section.id === sectionId) {
+          return {
+            ...section,
+            items: [
+              ...section.items,
+              {
+                id: newItemId,
+                task,
+                person: "같이",
+                memo: "",
+                note: "",
+                isCustom: true,
+              },
+            ],
+          };
+        }
+        return section;
+      })
+    );
+  };
+
+  const totalItems = sections.reduce(
     (acc, section) => acc + section.items.length,
     0
   );
@@ -60,12 +151,16 @@ export default function Home() {
         </div>
 
         <div className="space-y-6">
-          {checklistData.map((section) => (
+          {sections.map((section) => (
             <ChecklistSection
               key={section.id}
               section={section}
               completedItems={completedItems}
               onToggle={toggleItem}
+              onUpdateMemo={updateMemo}
+              onDeleteItem={deleteItem}
+              onUpdateTask={updateTask}
+              onAddItem={addItem}
             />
           ))}
         </div>
