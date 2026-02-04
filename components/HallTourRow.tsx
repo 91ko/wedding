@@ -45,21 +45,21 @@ export default function HallTourRow({
 
   return (
     <tr className="border-b border-gray-200 hover:bg-pink-50/50">
-      <td className="px-3 py-2 text-sm font-medium text-gray-600 bg-gray-50">
+      <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium text-gray-600 bg-gray-50">
         {row.category}
       </td>
-      <td className="px-3 py-2 text-sm text-gray-800">
+      <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm text-gray-800">
         {row.item}
       </td>
       {/* 신부(질문/메모) */}
-      <td className="px-3 py-2 min-w-[120px]">
+      <td className="px-2 sm:px-3 py-2 min-w-[90px] sm:min-w-[120px]">
         {editingBride ? (
           <div className="flex flex-col gap-1">
             <input
               type="text"
               value={brideVal}
               onChange={(e) => setBrideVal(e.target.value)}
-              className="w-full px-2 py-1 text-sm border border-pink-300 rounded focus:ring-2 focus:ring-pink-400"
+              className="w-full px-2 py-2 sm:py-1 text-sm border border-pink-300 rounded focus:ring-2 focus:ring-pink-400 min-h-[44px]"
               placeholder="질문/메모"
               autoFocus
               onKeyDown={(e) => {
@@ -88,14 +88,14 @@ export default function HallTourRow({
           <button
             type="button"
             onClick={() => setEditingBride(true)}
-            className="w-full text-left text-sm text-gray-700 hover:bg-pink-100 rounded px-2 py-1 min-h-[32px]"
+            className="w-full text-left text-sm text-gray-700 hover:bg-pink-100 active:bg-pink-200 rounded px-2 py-2 sm:py-1 min-h-[44px]"
           >
             {row.brideValue || "클릭하여 입력"}
           </button>
         )}
       </td>
       {/* 신랑(답/체크) */}
-      <td className="px-3 py-2 min-w-[120px]">
+      <td className="px-2 sm:px-3 py-2 min-w-[90px] sm:min-w-[120px]">
         {row.inputType === "stars" ? (
           <div className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((n) => (
@@ -114,26 +114,43 @@ export default function HallTourRow({
             ))}
           </div>
         ) : row.inputType === "checkbox" ? (
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={row.groomValue === "유" || row.groomValue === "O"}
-              onChange={(e) => {
-                const v = e.target.checked ? "유" : "";
-                onUpdate({ groomValue: v });
-                setGroomVal(v);
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                onUpdate({ groomValue: "유" });
+                setGroomVal("유");
               }}
-              className="w-4 h-4 rounded border-pink-400 text-pink-500"
-            />
-            <span className="text-sm">유</span>
-          </label>
+              className={`min-h-[44px] min-w-[44px] px-3 py-2 rounded-lg text-sm font-medium transition ${
+                row.groomValue === "유"
+                  ? "bg-pink-500 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-pink-100 active:bg-pink-200"
+              }`}
+            >
+              유
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                onUpdate({ groomValue: "무" });
+                setGroomVal("무");
+              }}
+              className={`min-h-[44px] min-w-[44px] px-3 py-2 rounded-lg text-sm font-medium transition ${
+                row.groomValue === "무"
+                  ? "bg-pink-500 text-white"
+                  : "bg-gray-100 text-gray-600 hover:bg-pink-100 active:bg-pink-200"
+              }`}
+            >
+              무
+            </button>
+          </div>
         ) : editingGroom ? (
           <div className="flex flex-col gap-1">
             <input
               type="text"
               value={groomVal}
               onChange={(e) => setGroomVal(e.target.value)}
-              className="w-full px-2 py-1 text-sm border border-pink-300 rounded focus:ring-2 focus:ring-pink-400"
+              className="w-full px-2 py-2 sm:py-1 text-sm border border-pink-300 rounded focus:ring-2 focus:ring-pink-400 min-h-[44px]"
               placeholder="답/비용/유무"
               autoFocus
               onKeyDown={(e) => {
@@ -162,18 +179,18 @@ export default function HallTourRow({
           <button
             type="button"
             onClick={() => setEditingGroom(true)}
-            className="w-full text-left text-sm text-gray-700 hover:bg-pink-100 rounded px-2 py-1 min-h-[32px]"
+            className="w-full text-left text-sm text-gray-700 hover:bg-pink-100 active:bg-pink-200 rounded px-2 py-2 sm:py-1 min-h-[44px]"
           >
             {row.groomValue ?? "클릭하여 입력"}
           </button>
         )}
       </td>
       {/* 체크 완료 */}
-      <td className="px-3 py-2 text-center">
+      <td className="px-2 sm:px-3 py-2 text-center">
         <button
           type="button"
           onClick={onToggleCheck}
-          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mx-auto ${
+          className={`w-10 h-10 sm:w-6 sm:h-6 rounded-full border-2 flex items-center justify-center mx-auto ${
             row.checked
               ? "bg-pink-500 border-pink-500"
               : "border-gray-300 hover:border-pink-400"
@@ -188,7 +205,7 @@ export default function HallTourRow({
         </button>
       </td>
       {/* 메모 */}
-      <td className="px-3 py-2 max-w-[160px]">
+      <td className="px-2 sm:px-3 py-2 max-w-[120px] sm:max-w-[160px]">
         {editingMemo ? (
           <div className="flex flex-col gap-1">
             <textarea
@@ -220,7 +237,7 @@ export default function HallTourRow({
           <button
             type="button"
             onClick={() => setEditingMemo(true)}
-            className="w-full text-left text-sm text-gray-600 hover:bg-yellow-50 rounded px-2 py-1 min-h-[32px] truncate"
+            className="w-full text-left text-sm text-gray-600 hover:bg-yellow-50 active:bg-yellow-100 rounded px-2 py-2 sm:py-1 min-h-[44px] truncate"
             title={row.userMemo || "메모 추가"}
           >
             {row.userMemo || "메모"}

@@ -178,11 +178,11 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 pb-safe">
       <Header />
       
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
-        <div className="mb-8">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-5xl">
+        <div className="mb-6 sm:mb-8">
           <ProgressBar progress={progress} completed={completedCount} total={totalItems} />
         </div>
 
