@@ -15,13 +15,13 @@ import { doc, setDoc, onSnapshot } from "firebase/firestore";
 const HALL_IDS = ["1", "2"] as const;
 const FIRESTORE_PREFIX = "wedding-hall-tour-";
 const DEFAULT_HALL_NAMES: Record<string, string> = {
-  "1": "웨딩홀 1",
-  "2": "웨딩홀 2",
+  "1": "위더스",
+  "2": "더시그너스",
 };
 
 function getDefaultData(hallId: string): WeddingHallTourData {
   return {
-    hallName: DEFAULT_HALL_NAMES[hallId] ?? `웨딩홀 ${hallId}`,
+    hallName: DEFAULT_HALL_NAMES[hallId] ?? "웨딩홀",
     rows: createInitialHallTourRows(),
     updatedAt: new Date().toISOString(),
   };
@@ -148,7 +148,7 @@ export default function WeddingHallPage() {
       <Header />
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-6xl">
-        {/* 웨딩홀 1 / 2 탭 */}
+        {/* 위더스 / 더시그너스 탭 */}
         <div className="flex gap-2 mb-4 sm:mb-6 rounded-xl bg-white/80 p-1.5 shadow-inner border border-pink-100">
           {HALL_IDS.map((id) => (
             <button
@@ -161,7 +161,7 @@ export default function WeddingHallPage() {
                   : "bg-transparent text-gray-600 hover:bg-pink-100 active:bg-pink-200"
               }`}
             >
-              웨딩홀 {id}
+              {DEFAULT_HALL_NAMES[id]}
             </button>
           ))}
         </div>

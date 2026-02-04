@@ -32,6 +32,18 @@ body {
   }
 }
 
+/* 하객 명단: select/input 글자 검정으로 잘 보이게 */
+table select,
+table input[type="text"],
+table input[type="number"],
+table textarea {
+  color: #111827;
+}
+table select option {
+  color: #111827;
+  background: #fff;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

@@ -33,17 +33,17 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
 
   return (
     <tr className="border-b border-gray-200 hover:bg-pink-50/30">
-      <td className="px-1 sm:px-2 py-1.5 text-center text-xs sm:text-sm text-gray-600 bg-gray-50 w-10">
+      <td className="px-1 sm:px-2 py-1.5 text-center text-xs sm:text-sm text-gray-900 bg-gray-50 w-10">
         {row.number}
       </td>
       <td className="px-1 sm:px-2 py-1.5 min-w-[72px]">
         <select
           value={row.side}
           onChange={(e) => onUpdate({ side: e.target.value })}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
+          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
         >
           {SIDES.map((s) => (
-            <option key={s || "empty"} value={s}>{s || "-"}</option>
+            <option key={s || "empty"} value={s} className="text-gray-900">{s || "-"}</option>
           ))}
         </select>
       </td>
@@ -51,10 +51,10 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
         <select
           value={row.relation}
           onChange={(e) => onUpdate({ relation: e.target.value })}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
+          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
         >
           {RELATIONS.map((r) => (
-            <option key={r || "empty"} value={r}>{r || "-"}</option>
+            <option key={r || "empty"} value={r} className="text-gray-900">{r || "-"}</option>
           ))}
         </select>
       </td>
@@ -63,7 +63,7 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
           type="text"
           value={row.nameGroup}
           onChange={(e) => onUpdate({ nameGroup: e.target.value })}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm border border-pink-200 rounded focus:ring-2 focus:ring-pink-400 min-h-[40px]"
+          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded focus:ring-2 focus:ring-pink-400 min-h-[40px] placeholder:text-gray-400"
           placeholder="이름/그룹"
         />
       </td>
@@ -76,7 +76,7 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
             const v = e.target.value;
             onUpdate({ headcount: v === "" ? "" : parseInt(v, 10) || 0 });
           }}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm border border-pink-200 rounded focus:ring-2 focus:ring-pink-400 min-h-[40px] text-center"
+          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded focus:ring-2 focus:ring-pink-400 min-h-[40px] text-center placeholder:text-gray-400"
           placeholder="0"
         />
       </td>
@@ -84,11 +84,11 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
         <select
           value={row.attendance}
           onChange={(e) => onUpdate({ attendance: e.target.value })}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
+          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
         >
           <option value="">-</option>
-          <option value="O">O</option>
-          <option value="X">X</option>
+          <option value="O" className="text-gray-900">O</option>
+          <option value="X" className="text-gray-900">X</option>
         </select>
       </td>
       <td className="px-1 sm:px-2 py-1.5 min-w-[100px] max-w-[160px]">
@@ -97,7 +97,7 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
             <textarea
               value={notesVal}
               onChange={(e) => setNotesVal(e.target.value)}
-              className="w-full px-1 py-1 text-xs border border-pink-300 rounded focus:ring-2 focus:ring-pink-400"
+              className="w-full px-1 py-1 text-xs text-gray-900 border border-pink-300 rounded focus:ring-2 focus:ring-pink-400"
               rows={2}
               autoFocus
             />
@@ -110,7 +110,7 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
           <button
             type="button"
             onClick={() => setEditingNotes(true)}
-            className="w-full text-left text-xs sm:text-sm text-gray-700 hover:bg-pink-100 rounded px-1 py-1.5 min-h-[40px] truncate"
+            className="w-full text-left text-xs sm:text-sm text-gray-900 hover:bg-pink-100 rounded px-1 py-1.5 min-h-[40px] truncate"
           >
             {row.notes || "비고"}
           </button>
@@ -122,7 +122,7 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
             type="text"
             value={row.guests[i] ?? ""}
             onChange={(e) => updateGuest(i, e.target.value)}
-            className="w-full px-1 py-1 sm:py-0.5 text-xs border border-pink-100 rounded focus:ring-2 focus:ring-pink-400 min-h-[36px]"
+            className="w-full px-1 py-1 sm:py-0.5 text-xs text-gray-900 border border-pink-100 rounded focus:ring-2 focus:ring-pink-400 min-h-[36px] placeholder:text-gray-400"
             placeholder="이름"
           />
         </td>
