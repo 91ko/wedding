@@ -12,11 +12,12 @@ import {
 import { db } from "@/lib/firebase";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 
-const HALL_IDS = ["1", "2"] as const;
+const HALL_IDS = ["1", "2", "3"] as const;
 const FIRESTORE_PREFIX = "wedding-hall-tour-";
 const DEFAULT_HALL_NAMES: Record<string, string> = {
   "1": "위더스",
   "2": "더시그너스",
+  "3": "라붐",
 };
 
 function getDefaultData(hallId: string): WeddingHallTourData {
@@ -28,10 +29,11 @@ function getDefaultData(hallId: string): WeddingHallTourData {
 }
 
 export default function WeddingHallPage() {
-  const [currentHallId, setCurrentHallId] = useState<"1" | "2">("1");
+  const [currentHallId, setCurrentHallId] = useState<string>("1");
   const [dataByHall, setDataByHall] = useState<Record<string, WeddingHallTourData>>({
     "1": getDefaultData("1"),
     "2": getDefaultData("2"),
+    "3": getDefaultData("3"),
   });
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -154,7 +156,7 @@ export default function WeddingHallPage() {
             <button
               key={id}
               type="button"
-              onClick={() => setCurrentHallId(id as "1" | "2")}
+              onClick={() => setCurrentHallId(id)}
               className={`flex-1 min-h-[48px] rounded-lg font-semibold text-sm sm:text-base transition ${
                 currentHallId === id
                   ? "bg-pink-500 text-white shadow"
