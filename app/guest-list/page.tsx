@@ -132,37 +132,14 @@ export default function GuestListPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-x-auto -mx-3 sm:mx-0">
-          <p className="md:sr-only px-3 py-2 text-xs text-gray-500">
-            표가 넓어요. 가로로 스크롤해서 보세요 →
-          </p>
-          <table className="w-full min-w-[900px] text-sm">
-            <thead>
-              <tr className="bg-gradient-to-r from-pink-50 to-rose-50 border-b-2 border-pink-200">
-                <th className="px-1 sm:px-2 py-2 text-center font-semibold text-gray-700 w-10">번호</th>
-                <th className="px-1 sm:px-2 py-2 text-left font-semibold text-gray-700 min-w-[72px]">측</th>
-                <th className="px-1 sm:px-2 py-2 text-left font-semibold text-gray-700 min-w-[72px]">관계</th>
-                <th className="px-1 sm:px-2 py-2 text-left font-semibold text-gray-700 min-w-[90px]">이름/그룹</th>
-                <th className="px-1 sm:px-2 py-2 text-center font-semibold text-gray-700 w-14">인원</th>
-                <th className="px-1 sm:px-2 py-2 text-center font-semibold text-gray-700 w-14">참석</th>
-                <th className="px-1 sm:px-2 py-2 text-left font-semibold text-gray-700 min-w-[100px]">비고</th>
-                {Array.from({ length: GUEST_SLOTS_PER_ROW }).map((_, i) => (
-                  <th key={i} className="px-1 py-2 text-left font-semibold text-gray-600 min-w-[70px]">
-                    이름{i + 1}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data.rows.map((row) => (
-                <GuestListRow
-                  key={row.id}
-                  row={row}
-                  onUpdate={(updates) => updateRow(row.id, updates)}
-                />
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {data.rows.map((row) => (
+            <GuestListRow
+              key={row.id}
+              row={row}
+              onUpdate={(updates) => updateRow(row.id, updates)}
+            />
+          ))}
         </div>
 
         <div className="mt-6 text-center text-gray-500 text-sm pb-8">

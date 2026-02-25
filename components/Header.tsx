@@ -8,12 +8,12 @@ export default function Header() {
 
   return (
     <header className="bg-gradient-to-r from-pink-400 via-rose-400 to-pink-400 text-white shadow-lg">
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
-        <div className="text-center mb-3 md:mb-4">
-          <h1 className="text-xl sm:text-3xl md:text-5xl font-bold mb-1 md:mb-2 drop-shadow-md">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-6 max-w-5xl">
+        <div className="text-center mb-2 sm:mb-3 md:mb-4">
+          <h1 className="text-lg sm:text-3xl md:text-5xl font-bold mb-0.5 sm:mb-1 md:mb-2 drop-shadow-md">
             💍 혀나곤듀와 새부리의 결혼준비 💍
           </h1>
-          <p className="text-sm sm:text-base md:text-xl opacity-90 font-medium">
+          <p className="text-xs sm:text-base md:text-xl opacity-90 font-medium">
             행복한 그날을 향해 한 걸음씩
           </p>
         </div>

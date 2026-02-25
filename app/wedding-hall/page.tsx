@@ -200,44 +200,30 @@ export default function WeddingHallPage() {
           </div>
         </details>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-pink-100 overflow-x-auto -mx-3 sm:mx-0">
-          <p className="md:sr-only px-3 py-2 text-xs text-gray-500">
-            표가 넓어요. 가로로 스크롤해서 보세요 →
-          </p>
-          <table className="w-full min-w-[700px] sm:min-w-[800px]">
-            <thead>
-              <tr className="bg-gradient-to-r from-pink-50 to-rose-50 border-b-2 border-pink-200">
-                <th className="px-2 sm:px-3 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">
-                  구분
-                </th>
-                <th className="px-2 sm:px-3 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">
-                  항목
-                </th>
-                <th className="px-2 sm:px-3 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 min-w-[100px]">
-                  신부
-                </th>
-                <th className="px-2 sm:px-3 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 min-w-[100px]">
-                  신랑
-                </th>
-                <th className="px-3 py-3 text-center text-xs sm:text-sm font-semibold text-gray-700 w-14 sm:w-16">
-                  완료
-                </th>
-                <th className="px-2 sm:px-3 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 max-w-[120px] sm:max-w-[160px]">
-                  메모
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.rows.map((row) => (
-                <HallTourRow
-                  key={row.id}
-                  row={row}
-                  onUpdate={(updates) => updateRow(row.id, updates)}
-                  onToggleCheck={() => toggleRowCheck(row.id)}
-                />
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-2">
+          {(() => {
+            let lastCategory = "";
+            return data.rows.map((row) => {
+              const showCategory = row.category !== lastCategory;
+              lastCategory = row.category;
+              return (
+                <div key={row.id}>
+                  {showCategory && (
+                    <div className="mt-3 mb-1.5 first:mt-0">
+                      <span className="text-sm font-bold text-pink-600 bg-pink-50 px-3 py-1 rounded-lg">
+                        {row.category}
+                      </span>
+                    </div>
+                  )}
+                  <HallTourRow
+                    row={row}
+                    onUpdate={(updates) => updateRow(row.id, updates)}
+                    onToggleCheck={() => toggleRowCheck(row.id)}
+                  />
+                </div>
+              );
+            });
+          })()}
         </div>
 
         <div className="mt-6 sm:mt-8 text-center text-gray-500 text-sm pb-8">

@@ -126,7 +126,7 @@ export default function ChecklistItem({
               >
                 {item.task}
               </h3>
-              <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-1 ml-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 {item.isCustom && (
                   <button
                     onClick={(e) => {

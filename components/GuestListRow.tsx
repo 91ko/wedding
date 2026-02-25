@@ -15,6 +15,7 @@ const RELATIONS = ["", "가족", "친구", "친척", "회사", "부모님 하객
 export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesVal, setNotesVal] = useState(row.notes);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     setNotesVal(row.notes);
@@ -31,102 +32,151 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
     setEditingNotes(false);
   };
 
+  const filledGuestCount = row.guests.filter((g) => g.trim()).length;
+
   return (
-    <tr className="border-b border-gray-200 hover:bg-pink-50/30">
-      <td className="px-1 sm:px-2 py-1.5 text-center text-xs sm:text-sm text-gray-900 bg-gray-50 w-10">
-        {row.number}
-      </td>
-      <td className="px-1 sm:px-2 py-1.5 min-w-[72px]">
-        <select
-          value={row.side}
-          onChange={(e) => onUpdate({ side: e.target.value })}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
-        >
-          {SIDES.map((s) => (
-            <option key={s || "empty"} value={s} className="text-gray-900">{s || "-"}</option>
-          ))}
-        </select>
-      </td>
-      <td className="px-1 sm:px-2 py-1.5 min-w-[72px]">
-        <select
-          value={row.relation}
-          onChange={(e) => onUpdate({ relation: e.target.value })}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
-        >
-          {RELATIONS.map((r) => (
-            <option key={r || "empty"} value={r} className="text-gray-900">{r || "-"}</option>
-          ))}
-        </select>
-      </td>
-      <td className="px-1 sm:px-2 py-1.5 min-w-[90px]">
+    <div
+      className={`rounded-xl border-2 p-3 transition-all ${
+        row.attendance === "O"
+          ? "bg-green-50/50 border-green-200"
+          : row.attendance === "X"
+          ? "bg-gray-50 border-gray-200 opacity-75"
+          : "bg-white border-gray-200"
+      }`}
+    >
+      {/* 상단: 번호 + 이름/그룹 + 참석여부 토글 */}
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs font-bold text-gray-400 bg-gray-100 w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0">
+          {row.number}
+        </span>
         <input
           type="text"
           value={row.nameGroup}
           onChange={(e) => onUpdate({ nameGroup: e.target.value })}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded focus:ring-2 focus:ring-pink-400 min-h-[40px] placeholder:text-gray-400"
+          className="flex-1 min-w-0 px-2 py-1.5 text-sm font-semibold text-gray-900 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 placeholder:text-gray-400"
           placeholder="이름/그룹"
         />
-      </td>
-      <td className="px-1 sm:px-2 py-1.5 w-14">
-        <input
-          type="number"
-          min={0}
-          value={row.headcount === "" ? "" : row.headcount}
-          onChange={(e) => {
-            const v = e.target.value;
-            onUpdate({ headcount: v === "" ? "" : parseInt(v, 10) || 0 });
-          }}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded focus:ring-2 focus:ring-pink-400 min-h-[40px] text-center placeholder:text-gray-400"
-          placeholder="0"
-        />
-      </td>
-      <td className="px-1 sm:px-2 py-1.5 w-14 text-center">
+        <div className="flex gap-1 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => onUpdate({ attendance: row.attendance === "O" ? "" : "O" })}
+            className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
+              row.attendance === "O"
+                ? "bg-green-500 text-white"
+                : "bg-gray-100 text-gray-400 active:bg-green-100"
+            }`}
+          >
+            O
+          </button>
+          <button
+            type="button"
+            onClick={() => onUpdate({ attendance: row.attendance === "X" ? "" : "X" })}
+            className={`w-9 h-9 rounded-lg text-sm font-bold transition ${
+              row.attendance === "X"
+                ? "bg-red-400 text-white"
+                : "bg-gray-100 text-gray-400 active:bg-red-100"
+            }`}
+          >
+            X
+          </button>
+        </div>
+      </div>
+
+      {/* 중단: 측 + 관계 + 인원 */}
+      <div className="flex items-center gap-2 mb-2">
         <select
-          value={row.attendance}
-          onChange={(e) => onUpdate({ attendance: e.target.value })}
-          className="w-full px-1 py-1.5 sm:py-1 text-xs sm:text-sm text-gray-900 border border-pink-200 rounded bg-white focus:ring-2 focus:ring-pink-400 min-h-[40px]"
+          value={row.side}
+          onChange={(e) => onUpdate({ side: e.target.value })}
+          className="flex-1 min-w-0 px-2 py-1.5 text-xs text-gray-900 border border-pink-200 rounded-lg bg-white focus:ring-2 focus:ring-pink-400"
         >
-          <option value="">-</option>
-          <option value="O" className="text-gray-900">O</option>
-          <option value="X" className="text-gray-900">X</option>
+          {SIDES.map((s) => (
+            <option key={s || "empty"} value={s}>{s || "측 선택"}</option>
+          ))}
         </select>
-      </td>
-      <td className="px-1 sm:px-2 py-1.5 min-w-[100px] max-w-[160px]">
+        <select
+          value={row.relation}
+          onChange={(e) => onUpdate({ relation: e.target.value })}
+          className="flex-1 min-w-0 px-2 py-1.5 text-xs text-gray-900 border border-pink-200 rounded-lg bg-white focus:ring-2 focus:ring-pink-400"
+        >
+          {RELATIONS.map((r) => (
+            <option key={r || "empty"} value={r}>{r || "관계 선택"}</option>
+          ))}
+        </select>
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <label className="text-xs text-gray-500">인원</label>
+          <input
+            type="number"
+            min={0}
+            value={row.headcount === "" ? "" : row.headcount}
+            onChange={(e) => {
+              const v = e.target.value;
+              onUpdate({ headcount: v === "" ? "" : parseInt(v, 10) || 0 });
+            }}
+            className="w-14 px-2 py-1.5 text-xs text-gray-900 border border-pink-200 rounded-lg focus:ring-2 focus:ring-pink-400 text-center"
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      {/* 비고 */}
+      <div className="mb-2">
         {editingNotes ? (
           <div className="space-y-1">
             <textarea
               value={notesVal}
               onChange={(e) => setNotesVal(e.target.value)}
-              className="w-full px-1 py-1 text-xs text-gray-900 border border-pink-300 rounded focus:ring-2 focus:ring-pink-400"
+              className="w-full px-2 py-1.5 text-xs text-gray-900 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-400"
               rows={2}
               autoFocus
             />
             <div className="flex gap-1">
-              <button type="button" onClick={saveNotes} className="px-2 py-0.5 text-xs bg-pink-500 text-white rounded">저장</button>
-              <button type="button" onClick={() => setEditingNotes(false)} className="px-2 py-0.5 text-xs bg-gray-300 rounded">취소</button>
+              <button type="button" onClick={saveNotes} className="px-2 py-1 text-xs bg-pink-500 text-white rounded-lg">저장</button>
+              <button type="button" onClick={() => setEditingNotes(false)} className="px-2 py-1 text-xs bg-gray-300 rounded-lg">취소</button>
             </div>
           </div>
         ) : (
           <button
             type="button"
             onClick={() => setEditingNotes(true)}
-            className="w-full text-left text-xs sm:text-sm text-gray-900 hover:bg-pink-100 rounded px-1 py-1.5 min-h-[40px] truncate"
+            className="w-full text-left text-xs text-gray-500 active:bg-yellow-50 rounded-lg px-2 py-1.5 border border-dashed border-gray-200"
           >
-            {row.notes || "비고"}
+            {row.notes ? `📝 ${row.notes}` : "📝 비고 추가"}
           </button>
         )}
-      </td>
-      {Array.from({ length: GUEST_SLOTS_PER_ROW }).map((_, i) => (
-        <td key={i} className="px-1 py-1.5 min-w-[70px]">
-          <input
-            type="text"
-            value={row.guests[i] ?? ""}
-            onChange={(e) => updateGuest(i, e.target.value)}
-            className="w-full px-1 py-1 sm:py-0.5 text-xs text-gray-900 border border-pink-100 rounded focus:ring-2 focus:ring-pink-400 min-h-[36px] placeholder:text-gray-400"
-            placeholder="이름"
-          />
-        </td>
-      ))}
-    </tr>
+      </div>
+
+      {/* 하객 이름 아코디언 */}
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between text-xs text-gray-500 active:bg-gray-50 rounded-lg px-2 py-1.5"
+      >
+        <span>
+          👤 하객 이름 {filledGuestCount > 0 && `(${filledGuestCount}명 입력됨)`}
+        </span>
+        <svg
+          className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {expanded && (
+        <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+          {Array.from({ length: GUEST_SLOTS_PER_ROW }).map((_, i) => (
+            <input
+              key={i}
+              type="text"
+              value={row.guests[i] ?? ""}
+              onChange={(e) => updateGuest(i, e.target.value)}
+              className="w-full px-2 py-1.5 text-xs text-gray-900 border border-pink-100 rounded-lg focus:ring-2 focus:ring-pink-400 placeholder:text-gray-400"
+              placeholder={`이름${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
