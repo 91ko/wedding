@@ -12,11 +12,9 @@ import {
 import { db } from "@/lib/firebase";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 
-const HALL_IDS = ["1", "2", "3"] as const;
+const HALL_IDS = ["3"] as const;
 const FIRESTORE_PREFIX = "wedding-hall-tour-";
 const DEFAULT_HALL_NAMES: Record<string, string> = {
-  "1": "위더스",
-  "2": "더시그너스",
   "3": "라붐",
 };
 
@@ -29,10 +27,8 @@ function getDefaultData(hallId: string): WeddingHallTourData {
 }
 
 export default function WeddingHallPage() {
-  const [currentHallId, setCurrentHallId] = useState<string>("1");
+  const [currentHallId, setCurrentHallId] = useState<string>("3");
   const [dataByHall, setDataByHall] = useState<Record<string, WeddingHallTourData>>({
-    "1": getDefaultData("1"),
-    "2": getDefaultData("2"),
     "3": getDefaultData("3"),
   });
   const [mounted, setMounted] = useState(false);
@@ -150,24 +146,6 @@ export default function WeddingHallPage() {
       <Header />
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-6xl">
-        {/* 위더스 / 더시그너스 탭 */}
-        <div className="flex gap-2 mb-4 sm:mb-6 rounded-xl bg-white/80 p-1.5 shadow-inner border border-pink-100">
-          {HALL_IDS.map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setCurrentHallId(id)}
-              className={`flex-1 min-h-[48px] rounded-lg font-semibold text-sm sm:text-base transition ${
-                currentHallId === id
-                  ? "bg-pink-500 text-white shadow"
-                  : "bg-transparent text-gray-600 hover:bg-pink-100 active:bg-pink-200"
-              }`}
-            >
-              {DEFAULT_HALL_NAMES[id]}
-            </button>
-          ))}
-        </div>
-
         <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <label className="text-sm font-medium text-gray-700">웨딩홀 이름</label>
