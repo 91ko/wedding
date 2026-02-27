@@ -39,6 +39,16 @@ export default function Header() {
             🏰 라붐계약내용
           </Link>
           <Link
+            href="/contract-photos"
+            className={`px-3 py-2.5 sm:px-4 sm:py-2 rounded-lg font-medium transition text-sm sm:text-base min-h-[44px] flex items-center justify-center ${
+              pathname === "/contract-photos"
+                ? "bg-white/30 text-white"
+                : "hover:bg-white/20 text-white/90 active:bg-white/25"
+            }`}
+          >
+            📄 계약서
+          </Link>
+          <Link
             href="/guest-list"
             className={`px-3 py-2.5 sm:px-4 sm:py-2 rounded-lg font-medium transition text-sm sm:text-base min-h-[44px] flex items-center justify-center ${
               pathname === "/guest-list"
