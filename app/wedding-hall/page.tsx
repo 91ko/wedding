@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import {
   createInitialHallTourRows,
+  CURRENT_DATA_VERSION,
   type WeddingHallTourData,
   type HallTourRow,
 } from "@/data/weddingHallTour";
@@ -14,12 +15,13 @@ const HALL_ID = "3";
 const FIRESTORE_KEY = "wedding-hall-tour-3";
 const HALL_NAME = "라붐";
 
-const CATEGORY_ORDER = ["교통", "예식", "비용", "옵션", "식사", "기타"];
+const CATEGORY_ORDER = ["비용", "예식", "스드메", "옵션", "식사", "환불/변경", "기타"];
 
 function getDefaultData(): WeddingHallTourData {
   return {
     hallName: HALL_NAME,
     rows: createInitialHallTourRows(),
+    dataVersion: CURRENT_DATA_VERSION,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -297,7 +299,6 @@ export default function WeddingHallPage() {
   const [data, setData] = useState<WeddingHallTourData>(getDefaultData());
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const cleanupDoneRef = useRef(false);
 
   const saveToFirebase = async (newData: WeddingHallTourData) => {
     try {
@@ -310,11 +311,6 @@ export default function WeddingHallPage() {
     }
   };
 
-  // 체크된 항목 영구 제거
-  const removeCheckedRows = (rows: HallTourRow[]): HallTourRow[] => {
-    return rows.filter((r) => !r.checked);
-  };
-
   useEffect(() => {
     setMounted(true);
 
@@ -323,26 +319,21 @@ export default function WeddingHallPage() {
       (docSnapshot) => {
         if (docSnapshot.exists()) {
           const raw = docSnapshot.data();
-          const rows = Array.isArray(raw.rows)
-            ? (raw.rows as HallTourRow[])
-            : createInitialHallTourRows();
+          const version = (raw.dataVersion as number) ?? 0;
 
-          // 최초 로드 시 체크된 항목 제거 후 저장
-          const hasChecked = rows.some((r) => r.checked);
-          if (hasChecked && !cleanupDoneRef.current) {
-            cleanupDoneRef.current = true;
-            const cleaned = removeCheckedRows(rows);
-            const cleanedData: WeddingHallTourData = {
-              hallName: (raw.hallName as string) ?? HALL_NAME,
-              rows: cleaned,
-              updatedAt: raw.updatedAt as string,
-            };
-            setData(cleanedData);
-            saveToFirebase(cleanedData);
+          // 구버전 데이터 → 새 계약 정보 구조로 마이그레이션
+          if (version < CURRENT_DATA_VERSION) {
+            const newData = getDefaultData();
+            setData(newData);
+            saveToFirebase(newData);
           } else {
+            const rows = Array.isArray(raw.rows)
+              ? (raw.rows as HallTourRow[])
+              : createInitialHallTourRows();
             setData({
               hallName: (raw.hallName as string) ?? HALL_NAME,
               rows,
+              dataVersion: CURRENT_DATA_VERSION,
               updatedAt: raw.updatedAt as string,
             });
           }
