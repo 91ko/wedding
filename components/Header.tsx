@@ -36,7 +36,7 @@ export default function Header() {
                 : "hover:bg-white/20 text-white/90 active:bg-white/25"
             }`}
           >
-            🏰 웨딩홀 투어
+            🏰 라붐계약내용
           </Link>
           <Link
             href="/guest-list"

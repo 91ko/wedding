@@ -1,141 +1,384 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
-import HallTourRow from "@/components/HallTourRow";
 import {
   createInitialHallTourRows,
-  WEDDING_HALL_TOUR_TIPS,
   type WeddingHallTourData,
-  type HallTourRow as HallTourRowType,
+  type HallTourRow,
 } from "@/data/weddingHallTour";
 import { db } from "@/lib/firebase";
 import { doc, setDoc, onSnapshot } from "firebase/firestore";
 
-const HALL_IDS = ["3"] as const;
-const FIRESTORE_PREFIX = "wedding-hall-tour-";
-const DEFAULT_HALL_NAMES: Record<string, string> = {
-  "3": "라붐",
-};
+const HALL_ID = "3";
+const FIRESTORE_KEY = "wedding-hall-tour-3";
+const HALL_NAME = "라붐";
 
-function getDefaultData(hallId: string): WeddingHallTourData {
+const CATEGORY_ORDER = ["교통", "예식", "비용", "옵션", "식사", "기타"];
+
+function getDefaultData(): WeddingHallTourData {
   return {
-    hallName: DEFAULT_HALL_NAMES[hallId] ?? "웨딩홀",
+    hallName: HALL_NAME,
     rows: createInitialHallTourRows(),
     updatedAt: new Date().toISOString(),
   };
 }
 
+function groupByCategory(rows: HallTourRow[]): Record<string, HallTourRow[]> {
+  const grouped: Record<string, HallTourRow[]> = {};
+  for (const row of rows) {
+    if (!grouped[row.category]) grouped[row.category] = [];
+    grouped[row.category].push(row);
+  }
+  return grouped;
+}
+
+/* ── Inline edit components ── */
+
+function StarsEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const stars = value?.match(/⭐/g);
+  const count = stars ? stars.length : 0;
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((n) => (
+        <button
+          key={n}
+          type="button"
+          onClick={() => onChange("⭐".repeat(n))}
+          className="text-lg active:scale-125 transition-transform"
+        >
+          {n <= count ? "⭐" : "☆"}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function CheckboxEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div className="flex gap-1.5">
+      {["유", "무"].map((opt) => (
+        <button
+          key={opt}
+          type="button"
+          onClick={() => onChange(opt)}
+          className={`px-3 py-1 rounded-lg text-sm font-medium transition ${
+            value === opt
+              ? "bg-pink-500 text-white"
+              : "bg-gray-100 text-gray-600 active:bg-pink-200"
+          }`}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function TextValueEditor({
+  value,
+  onSave,
+}: {
+  value: string;
+  onSave: (v: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(value);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => setText(value), [value]);
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-1.5">
+        <input
+          ref={inputRef}
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onSave(text);
+              setEditing(false);
+            }
+            if (e.key === "Escape") {
+              setText(value);
+              setEditing(false);
+            }
+          }}
+          className="flex-1 min-w-0 px-2 py-1 text-sm border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-400 bg-white"
+        />
+        <button
+          type="button"
+          onClick={() => {
+            onSave(text);
+            setEditing(false);
+          }}
+          className="px-2 py-1 text-xs bg-pink-500 text-white rounded-lg flex-shrink-0"
+        >
+          저장
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setText(value);
+            setEditing(false);
+          }}
+          className="px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded-lg flex-shrink-0"
+        >
+          취소
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="text-sm text-gray-800 active:bg-pink-50 rounded px-1.5 py-0.5 text-left min-h-[28px] w-full"
+    >
+      {value || (
+        <span className="text-gray-400 italic">탭하여 입력</span>
+      )}
+    </button>
+  );
+}
+
+function MemoEditor({
+  value,
+  onSave,
+}: {
+  value: string;
+  onSave: (v: string) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(value);
+
+  useEffect(() => setText(value), [value]);
+
+  if (editing) {
+    return (
+      <div className="mt-1 flex items-center gap-1.5">
+        <input
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onSave(text);
+              setEditing(false);
+            }
+            if (e.key === "Escape") {
+              setText(value);
+              setEditing(false);
+            }
+          }}
+          className="flex-1 min-w-0 px-2 py-1 text-xs border border-yellow-300 rounded-lg focus:ring-2 focus:ring-yellow-400 bg-white"
+          placeholder="메모 입력"
+          autoFocus
+        />
+        <button
+          type="button"
+          onClick={() => {
+            onSave(text);
+            setEditing(false);
+          }}
+          className="px-2 py-1 text-xs bg-pink-500 text-white rounded-lg flex-shrink-0"
+        >
+          저장
+        </button>
+      </div>
+    );
+  }
+
+  if (!value) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={() => setEditing(true)}
+      className="mt-0.5 text-xs text-gray-400 active:text-gray-600 text-left w-full"
+    >
+      {value}
+    </button>
+  );
+}
+
+/* ── Category Card ── */
+
+function CategoryCard({
+  category,
+  rows,
+  onUpdateRow,
+}: {
+  category: string;
+  rows: HallTourRow[];
+  onUpdateRow: (rowId: string, updates: Partial<HallTourRow>) => void;
+}) {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-3 active:bg-pink-50 transition-colors"
+      >
+        <span className="text-sm font-bold text-pink-600">{category}</span>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="border-t border-gray-100 divide-y divide-gray-50">
+          {rows.map((row) => (
+            <div key={row.id} className="px-4 py-2.5">
+              {/* 항목명 */}
+              <div className="text-xs font-medium text-gray-500 mb-1">
+                {row.item}
+              </div>
+              {/* 값 */}
+              <div>
+                {row.inputType === "stars" ? (
+                  <StarsEditor
+                    value={row.groomValue ?? ""}
+                    onChange={(v) => onUpdateRow(row.id, { groomValue: v })}
+                  />
+                ) : row.inputType === "checkbox" ? (
+                  <CheckboxEditor
+                    value={row.groomValue ?? ""}
+                    onChange={(v) => onUpdateRow(row.id, { groomValue: v })}
+                  />
+                ) : (
+                  <TextValueEditor
+                    value={row.groomValue ?? ""}
+                    onSave={(v) => onUpdateRow(row.id, { groomValue: v })}
+                  />
+                )}
+              </div>
+              {/* 메모 */}
+              <MemoEditor
+                value={row.userMemo ?? ""}
+                onSave={(v) => onUpdateRow(row.id, { userMemo: v })}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Main Page ── */
+
 export default function WeddingHallPage() {
-  const [currentHallId, setCurrentHallId] = useState<string>("3");
-  const [dataByHall, setDataByHall] = useState<Record<string, WeddingHallTourData>>({
-    "3": getDefaultData("3"),
-  });
+  const [data, setData] = useState<WeddingHallTourData>(getDefaultData());
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const cleanupDoneRef = useRef(false);
 
-  const firestoreKey = (hallId: string) => `${FIRESTORE_PREFIX}${hallId}`;
-
-  const saveToFirebase = async (hallId: string, newData: WeddingHallTourData) => {
+  const saveToFirebase = async (newData: WeddingHallTourData) => {
     try {
-      await setDoc(doc(db, "wedding", firestoreKey(hallId)), {
+      await setDoc(doc(db, "wedding", FIRESTORE_KEY), {
         ...newData,
         updatedAt: new Date().toISOString(),
       });
     } catch (error) {
-      console.error("웨딩홀 투어 Firebase 저장 실패:", error);
-      localStorage.setItem(`wedding-hall-tour-${hallId}`, JSON.stringify(newData));
+      console.error("Firebase 저장 실패:", error);
     }
+  };
+
+  // 체크된 항목 영구 제거
+  const removeCheckedRows = (rows: HallTourRow[]): HallTourRow[] => {
+    return rows.filter((r) => !r.checked);
   };
 
   useEffect(() => {
     setMounted(true);
 
-    const unsubscribes = HALL_IDS.map((hallId) =>
-      onSnapshot(
-        doc(db, "wedding", firestoreKey(hallId)),
-        (docSnapshot) => {
-          setDataByHall((prev) => {
-            const next = { ...prev };
-            if (docSnapshot.exists()) {
-              const raw = docSnapshot.data();
-              const rows = Array.isArray(raw.rows)
-                ? (raw.rows as HallTourRowType[])
-                : createInitialHallTourRows();
-              next[hallId] = {
-                hallName: (raw.hallName as string) ?? DEFAULT_HALL_NAMES[hallId],
-                rows,
-                updatedAt: raw.updatedAt as string,
-              };
-            } else {
-              const defaultData = getDefaultData(hallId);
-              next[hallId] = defaultData;
-              saveToFirebase(hallId, defaultData);
-            }
-            return next;
-          });
-          setIsLoading(false);
-        },
-        (error) => {
-          console.error("웨딩홀 투어 Firebase 리스너 오류:", error);
-          const saved = localStorage.getItem(`wedding-hall-tour-${hallId}`);
-          if (saved) {
-            try {
-              setDataByHall((prev) => ({
-                ...prev,
-                [hallId]: JSON.parse(saved),
-              }));
-            } catch {
-              setDataByHall((prev) => ({
-                ...prev,
-                [hallId]: getDefaultData(hallId),
-              }));
-            }
+    const unsub = onSnapshot(
+      doc(db, "wedding", FIRESTORE_KEY),
+      (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const raw = docSnapshot.data();
+          const rows = Array.isArray(raw.rows)
+            ? (raw.rows as HallTourRow[])
+            : createInitialHallTourRows();
+
+          // 최초 로드 시 체크된 항목 제거 후 저장
+          const hasChecked = rows.some((r) => r.checked);
+          if (hasChecked && !cleanupDoneRef.current) {
+            cleanupDoneRef.current = true;
+            const cleaned = removeCheckedRows(rows);
+            const cleanedData: WeddingHallTourData = {
+              hallName: (raw.hallName as string) ?? HALL_NAME,
+              rows: cleaned,
+              updatedAt: raw.updatedAt as string,
+            };
+            setData(cleanedData);
+            saveToFirebase(cleanedData);
+          } else {
+            setData({
+              hallName: (raw.hallName as string) ?? HALL_NAME,
+              rows,
+              updatedAt: raw.updatedAt as string,
+            });
           }
-          setIsLoading(false);
+        } else {
+          const defaultData = getDefaultData();
+          setData(defaultData);
+          saveToFirebase(defaultData);
         }
-      )
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error("Firebase 리스너 오류:", error);
+        setIsLoading(false);
+      }
     );
 
-    return () => unsubscribes.forEach((u) => u());
+    return () => unsub();
   }, []);
 
-  const data = dataByHall[currentHallId] ?? getDefaultData(currentHallId);
-
-  const updateRow = (rowId: string, updates: Partial<HallTourRowType>) => {
+  const updateRow = (rowId: string, updates: Partial<HallTourRow>) => {
     const newRows = data.rows.map((r) =>
       r.id === rowId ? { ...r, ...updates } : r
     );
     const newData = { ...data, rows: newRows };
-    setDataByHall((prev) => ({ ...prev, [currentHallId]: newData }));
-    saveToFirebase(currentHallId, newData);
+    setData(newData);
+    saveToFirebase(newData);
   };
 
-  const toggleRowCheck = (rowId: string) => {
-    const newRows = data.rows.map((r) =>
-      r.id === rowId ? { ...r, checked: !r.checked } : r
-    );
-    const newData = { ...data, rows: newRows };
-    setDataByHall((prev) => ({ ...prev, [currentHallId]: newData }));
-    saveToFirebase(currentHallId, newData);
-  };
-
-  const updateHallName = (hallName: string) => {
-    const newData = { ...data, hallName };
-    setDataByHall((prev) => ({ ...prev, [currentHallId]: newData }));
-    saveToFirebase(currentHallId, newData);
-  };
-
-  const completedCount = data.rows.filter((r) => r.checked).length;
-  const totalCount = data.rows.length;
-  const progress = totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
+  const grouped = groupByCategory(data.rows);
 
   if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pink-500 mx-auto mb-4" />
-          <p className="text-gray-600">웨딩홀 투어 불러오는 중...</p>
+          <p className="text-gray-600">불러오는 중...</p>
         </div>
       </div>
     );
@@ -145,67 +388,27 @@ export default function WeddingHallPage() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-rose-50 pb-safe">
       <Header />
 
-      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-6xl">
-        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-3">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <label className="text-sm font-medium text-gray-700">웨딩홀 이름</label>
-            <input
-              type="text"
-              value={data.hallName}
-              onChange={(e) => updateHallName(e.target.value)}
-              className="flex-1 min-w-0 px-3 py-2.5 sm:py-2 border border-pink-300 rounded-lg focus:ring-2 focus:ring-pink-400 text-base"
-              placeholder="예: OOO 웨딩홀"
-            />
-          </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <span className="font-semibold text-pink-600">{completedCount}</span>
-            <span>/ {totalCount}</span>
-            <div className="w-16 sm:w-24 h-2 bg-gray-200 rounded-full overflow-hidden flex-shrink-0">
-              <div
-                className="h-full bg-gradient-to-r from-pink-400 to-rose-500 transition-all"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 max-w-2xl">
+        {/* 웨딩홀 이름 헤더 */}
+        <div className="mb-5 text-center">
+          <h2 className="text-xl font-bold text-gray-800">{data.hallName}</h2>
+          <p className="text-xs text-gray-400 mt-1">계약 정보</p>
         </div>
 
-        <details className="mb-4 sm:mb-6">
-          <summary className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-900 cursor-pointer select-none touch-manipulation">
-            💡 투어 전 꿀팁 보기
-          </summary>
-          <div className="mt-2 bg-amber-50/80 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 whitespace-pre-line">
-            {WEDDING_HALL_TOUR_TIPS}
-          </div>
-        </details>
-
-        <div className="space-y-2">
-          {(() => {
-            let lastCategory = "";
-            return data.rows.map((row) => {
-              const showCategory = row.category !== lastCategory;
-              lastCategory = row.category;
-              return (
-                <div key={row.id}>
-                  {showCategory && (
-                    <div className="mt-3 mb-1.5 first:mt-0">
-                      <span className="text-sm font-bold text-pink-600 bg-pink-50 px-3 py-1 rounded-lg">
-                        {row.category}
-                      </span>
-                    </div>
-                  )}
-                  <HallTourRow
-                    row={row}
-                    onUpdate={(updates) => updateRow(row.id, updates)}
-                    onToggleCheck={() => toggleRowCheck(row.id)}
-                  />
-                </div>
-              );
-            });
-          })()}
+        {/* 카테고리별 카드 */}
+        <div className="space-y-3">
+          {CATEGORY_ORDER.filter((cat) => grouped[cat]?.length).map((cat) => (
+            <CategoryCard
+              key={cat}
+              category={cat}
+              rows={grouped[cat]}
+              onUpdateRow={updateRow}
+            />
+          ))}
         </div>
 
         <div className="mt-6 sm:mt-8 text-center text-gray-500 text-sm pb-8">
-          <p>혀나곤듀 💕💕</p>
+          <p>혀나곤듀</p>
         </div>
       </main>
     </div>
