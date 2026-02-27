@@ -7,15 +7,17 @@ import { GUEST_SLOTS_PER_ROW } from "@/data/guestList";
 interface GuestListRowProps {
   row: GuestRow;
   onUpdate: (updates: Partial<GuestRow>) => void;
+  onDelete: () => void;
 }
 
 const SIDES = ["", "신랑 측", "신부 측"];
 const RELATIONS = ["", "가족", "친구", "친척", "회사", "부모님 하객"];
 
-export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
+export default function GuestListRow({ row, onUpdate, onDelete }: GuestListRowProps) {
   const [editingNotes, setEditingNotes] = useState(false);
   const [notesVal, setNotesVal] = useState(row.notes);
   const [expanded, setExpanded] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     setNotesVal(row.notes);
@@ -145,24 +147,55 @@ export default function GuestListRow({ row, onUpdate }: GuestListRowProps) {
         )}
       </div>
 
-      {/* 하객 이름 아코디언 */}
-      <button
-        type="button"
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between text-xs text-gray-500 active:bg-gray-50 rounded-lg px-2 py-1.5"
-      >
-        <span>
-          👤 하객 이름 {filledGuestCount > 0 && `(${filledGuestCount}명 입력됨)`}
-        </span>
-        <svg
-          className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
+      {/* 하객 이름 아코디언 + 삭제 */}
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="flex-1 flex items-center justify-between text-xs text-gray-500 active:bg-gray-50 rounded-lg px-2 py-1.5"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+          <span>
+            👤 하객 이름 {filledGuestCount > 0 && `(${filledGuestCount}명 입력됨)`}
+          </span>
+          <svg
+            className={`w-4 h-4 transition-transform ${expanded ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {!showDeleteConfirm ? (
+          <button
+            type="button"
+            onClick={() => setShowDeleteConfirm(true)}
+            className="flex-shrink-0 w-8 h-8 flex items-center justify-center text-gray-400 active:text-red-500 rounded-lg active:bg-red-50 transition"
+            title="카드 삭제"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        ) : (
+          <div className="flex-shrink-0 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => { onDelete(); setShowDeleteConfirm(false); }}
+              className="px-2 py-1 text-xs bg-red-500 text-white rounded-lg font-semibold"
+            >
+              삭제
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(false)}
+              className="px-2 py-1 text-xs bg-gray-300 rounded-lg"
+            >
+              취소
+            </button>
+          </div>
+        )}
+      </div>
       {expanded && (
         <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
           {Array.from({ length: GUEST_SLOTS_PER_ROW }).map((_, i) => (
