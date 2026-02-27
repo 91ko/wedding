@@ -228,12 +228,17 @@ function CategoryCard({
   category,
   rows,
   onUpdateRow,
+  onDeleteRow,
+  onAddRow,
 }: {
   category: string;
   rows: HallTourRow[];
   onUpdateRow: (rowId: string, updates: Partial<HallTourRow>) => void;
+  onDeleteRow: (rowId: string) => void;
+  onAddRow: (category: string) => void;
 }) {
   const [open, setOpen] = useState(true);
+  const [editMode, setEditMode] = useState(false);
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
@@ -243,50 +248,96 @@ function CategoryCard({
         className="w-full flex items-center justify-between px-4 py-3 active:bg-pink-50 transition-colors"
       >
         <span className="text-sm font-bold text-pink-600">{category}</span>
-        <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400">{rows.length}개</span>
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </button>
 
       {open && (
-        <div className="border-t border-gray-100 divide-y divide-gray-50">
-          {rows.map((row) => (
-            <div key={row.id} className="px-4 py-2.5">
-              {/* 항목명 */}
-              <div className="text-xs font-medium text-gray-500 mb-1">
-                {row.item}
+        <div className="border-t border-gray-100">
+          <div className="divide-y divide-gray-50">
+            {rows.map((row) => (
+              <div key={row.id} className="px-4 py-2.5">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    {/* 항목명 */}
+                    <div className="text-xs font-medium text-gray-500 mb-1">
+                      {row.item}
+                    </div>
+                    {/* 값 */}
+                    <div>
+                      {row.inputType === "stars" ? (
+                        <StarsEditor
+                          value={row.groomValue ?? ""}
+                          onChange={(v) => onUpdateRow(row.id, { groomValue: v })}
+                        />
+                      ) : row.inputType === "checkbox" ? (
+                        <CheckboxEditor
+                          value={row.groomValue ?? ""}
+                          onChange={(v) => onUpdateRow(row.id, { groomValue: v })}
+                        />
+                      ) : (
+                        <TextValueEditor
+                          value={row.groomValue ?? ""}
+                          onSave={(v) => onUpdateRow(row.id, { groomValue: v })}
+                        />
+                      )}
+                    </div>
+                    {/* 메모 */}
+                    <MemoEditor
+                      value={row.userMemo ?? ""}
+                      onSave={(v) => onUpdateRow(row.id, { userMemo: v })}
+                    />
+                  </div>
+                  {editMode && (
+                    <button
+                      type="button"
+                      onClick={() => onDeleteRow(row.id)}
+                      className="ml-2 mt-0.5 p-1 text-red-400 hover:text-red-600 active:bg-red-50 rounded-lg flex-shrink-0"
+                      title="삭제"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
               </div>
-              {/* 값 */}
-              <div>
-                {row.inputType === "stars" ? (
-                  <StarsEditor
-                    value={row.groomValue ?? ""}
-                    onChange={(v) => onUpdateRow(row.id, { groomValue: v })}
-                  />
-                ) : row.inputType === "checkbox" ? (
-                  <CheckboxEditor
-                    value={row.groomValue ?? ""}
-                    onChange={(v) => onUpdateRow(row.id, { groomValue: v })}
-                  />
-                ) : (
-                  <TextValueEditor
-                    value={row.groomValue ?? ""}
-                    onSave={(v) => onUpdateRow(row.id, { groomValue: v })}
-                  />
-                )}
-              </div>
-              {/* 메모 */}
-              <MemoEditor
-                value={row.userMemo ?? ""}
-                onSave={(v) => onUpdateRow(row.id, { userMemo: v })}
-              />
-            </div>
-          ))}
+            ))}
+          </div>
+
+          {/* 하단 버튼 영역 */}
+          <div className="px-4 py-2 border-t border-gray-100 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => onAddRow(category)}
+              className="flex items-center gap-1 text-xs text-pink-500 active:text-pink-700 py-1"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              항목 추가
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditMode(!editMode)}
+              className={`text-xs py-1 px-2 rounded-lg ${
+                editMode
+                  ? "text-red-500 bg-red-50"
+                  : "text-gray-400 active:text-gray-600"
+              }`}
+            >
+              {editMode ? "편집 완료" : "편집"}
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -353,6 +404,11 @@ export default function WeddingHallPage() {
     return () => unsub();
   }, []);
 
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addCategory, setAddCategory] = useState("");
+  const [addItemName, setAddItemName] = useState("");
+  const [addInputType, setAddInputType] = useState<"text" | "checkbox">("text");
+
   const updateRow = (rowId: string, updates: Partial<HallTourRow>) => {
     const newRows = data.rows.map((r) =>
       r.id === rowId ? { ...r, ...updates } : r
@@ -360,6 +416,38 @@ export default function WeddingHallPage() {
     const newData = { ...data, rows: newRows };
     setData(newData);
     saveToFirebase(newData);
+  };
+
+  const deleteRow = (rowId: string) => {
+    const newRows = data.rows.filter((r) => r.id !== rowId);
+    const newData = { ...data, rows: newRows };
+    setData(newData);
+    saveToFirebase(newData);
+  };
+
+  const addRow = (category: string) => {
+    setAddCategory(category);
+    setAddItemName("");
+    setAddInputType("text");
+    setShowAddModal(true);
+  };
+
+  const confirmAddRow = () => {
+    if (!addItemName.trim()) return;
+    const newRow: HallTourRow = {
+      id: `contract-${Date.now()}-${addCategory}-${addItemName.slice(0, 5)}`,
+      category: addCategory,
+      item: addItemName.trim(),
+      inputType: addInputType,
+    };
+    // 같은 카테고리의 마지막 항목 뒤에 삽입
+    const lastIdx = data.rows.map(r => r.category).lastIndexOf(addCategory);
+    const newRows = [...data.rows];
+    newRows.splice(lastIdx + 1, 0, newRow);
+    const newData = { ...data, rows: newRows };
+    setData(newData);
+    saveToFirebase(newData);
+    setShowAddModal(false);
   };
 
   const grouped = groupByCategory(data.rows);
@@ -394,6 +482,8 @@ export default function WeddingHallPage() {
               category={cat}
               rows={grouped[cat]}
               onUpdateRow={updateRow}
+              onDeleteRow={deleteRow}
+              onAddRow={addRow}
             />
           ))}
         </div>
@@ -402,6 +492,71 @@ export default function WeddingHallPage() {
           <p>혀나곤듀</p>
         </div>
       </main>
+
+      {/* 항목 추가 모달 */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-end sm:items-center justify-center z-50">
+          <div className="bg-white w-full sm:max-w-sm sm:rounded-2xl rounded-t-2xl p-5 space-y-4">
+            <h3 className="text-sm font-bold text-gray-800">
+              <span className="text-pink-500">{addCategory}</span>에 항목 추가
+            </h3>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">항목명</label>
+              <input
+                type="text"
+                value={addItemName}
+                onChange={(e) => setAddItemName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") confirmAddRow();
+                  if (e.key === "Escape") setShowAddModal(false);
+                }}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-pink-400 focus:border-pink-400"
+                placeholder="예: 추가 옵션"
+                autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">입력 타입</label>
+              <div className="flex gap-2">
+                {(["text", "checkbox"] as const).map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setAddInputType(t)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                      addInputType === t
+                        ? "bg-pink-500 text-white"
+                        : "bg-gray-100 text-gray-600 active:bg-pink-200"
+                    }`}
+                  >
+                    {t === "text" ? "텍스트" : "유/무"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={confirmAddRow}
+                disabled={!addItemName.trim()}
+                className="flex-1 py-2.5 bg-pink-500 text-white text-sm font-medium rounded-xl disabled:opacity-40 active:bg-pink-600"
+              >
+                추가
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAddModal(false)}
+                className="flex-1 py-2.5 bg-gray-100 text-gray-600 text-sm font-medium rounded-xl active:bg-gray-200"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
