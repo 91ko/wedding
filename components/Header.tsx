@@ -58,6 +58,26 @@ export default function Header() {
           >
             👥 하객 명단
           </Link>
+          <Link
+            href="/jeju-snap"
+            className={`px-3 py-2.5 sm:px-4 sm:py-2 rounded-lg font-medium transition text-sm sm:text-base min-h-[44px] flex items-center justify-center ${
+              pathname === "/jeju-snap"
+                ? "bg-white/30 text-white"
+                : "hover:bg-white/20 text-white/90 active:bg-white/25"
+            }`}
+          >
+            🌴 제주스냅
+          </Link>
+          <Link
+            href="/studio-schedule"
+            className={`px-3 py-2.5 sm:px-4 sm:py-2 rounded-lg font-medium transition text-sm sm:text-base min-h-[44px] flex items-center justify-center ${
+              pathname === "/studio-schedule"
+                ? "bg-white/30 text-white"
+                : "hover:bg-white/20 text-white/90 active:bg-white/25"
+            }`}
+          >
+            📷 스튜디오
+          </Link>
         </nav>
       </div>
     </header>
